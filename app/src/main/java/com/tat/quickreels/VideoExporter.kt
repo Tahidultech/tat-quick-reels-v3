@@ -12,6 +12,7 @@ import android.os.Looper
 import android.provider.MediaStore
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.effect.Effect
 import androidx.media3.effect.BitmapOverlay
 import androidx.media3.effect.MatrixTransformation
 import androidx.media3.effect.OverlayEffect
@@ -71,7 +72,7 @@ object VideoExporter {
         val temp = File(context.cacheDir, "tat_export.mp4")
         if (temp.exists()) temp.delete()
 
-        val videoEffects = mutableListOf<androidx.media3.effect.GlEffect>(
+        val videoEffects = mutableListOf<Effect>(
             Presentation.createForWidthAndHeight(
                 exportWidth,
                 exportHeight,
