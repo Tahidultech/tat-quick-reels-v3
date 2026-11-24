@@ -2286,7 +2286,11 @@ class MainActivity : AppCompatActivity() {
     
         val selectedVideo = videoUri
         if (selectedVideo == null) {
-            Toast.makeText(this, "Please select a video first", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                this,
+                "Please select a video first",
+                Toast.LENGTH_SHORT
+            ).show()
             return
         }
     
@@ -2294,57 +2298,68 @@ class MainActivity : AppCompatActivity() {
         exportBtn.text = "■ Stop / Cancel"
         exportBtn.background = roundedBg("#8E0000", "#FF5252", 6)
         exportBtn.isEnabled = true
-
+    
+        try {
+            player?.pause()
+            playPauseBtn.text = "▶"
+            bPlayBtn.text = "▶"
+    
             val overlay = createExactExportOverlay()
             val cw = canvas.width.coerceAtLeast(1).toFloat()
             val ch = canvas.height.coerceAtLeast(1).toFloat()
-
-        activeTransformer = VideoExporter.export(
-            context = this,
-            videoUri = selectedVideo,
-            overlay = overlay,
-            exportWidth = exportWidth,
-            exportHeight = exportHeight,
-            normTransX = videoLayer.translationX / cw,
-            normTransY = videoLayer.translationY / ch,
-            scaleX = videoLayer.scaleX,
-            scaleY = videoLayer.scaleY,
-            trimStartMs = trimStartMs,
-            trimEndMs = trimEndMs,
-            chromaKeyEnabled = chromaKeyEnabled,
-            chromaKeyColor = chromaKeyColor,
-            chromaKeyFeather = chromaKeyFeather,
-            chromaKeyEdgeSoftness = chromaKeyEdgeSoftness,
-            onProgress = { pct ->
-                runOnUiThread {
-                    progressBar.progress = pct
-                    progressText.text = "HD Exporting... $pct%"
+    
+            activeTransformer = VideoExporter.export(
+                context = this,
+                videoUri = selectedVideo,
+                overlay = overlay,
+                exportWidth = exportWidth,
+                exportHeight = exportHeight,
+                normTransX = videoLayer.translationX / cw,
+                normTransY = videoLayer.translationY / ch,
+                scaleX = videoLayer.scaleX,
+                scaleY = videoLayer.scaleY,
+                trimStartMs = trimStartMs,
+                trimEndMs = trimEndMs,
+                chromaKeyEnabled = chromaKeyEnabled,
+                chromaKeyColor = chromaKeyColor,
+                chromaKeyFeather = chromaKeyFeather,
+                chromaKeyEdgeSoftness = chromaKeyEdgeSoftness,
+                onProgress = { pct ->
+                    runOnUiThread {
+                        progressBar.progress = pct
+                        progressText.text = "HD Exporting... $pct%"
+                    }
+                },
+                onStatus = { msg, finished ->
+                    runOnUiThread {
+                        // Cancel-এর পর আসা callback-কে উপেক্ষা করুন।
+                        if (!isExporting) return@runOnUiThread
+    
+                        progressText.text = msg
+    
+                        if (finished) {
+                            isExporting = false
+                            activeTransformer = null
+                            exportBtn.text = "⬇ Export"
+                            exportBtn.background =
+                                roundedBg("#B71C1C", "#FF5252", 6)
+                            exportBtn.isEnabled = true
+                        }
+                    }
                 }
-            },
-        onStatus = { msg, finished ->
-            runOnUiThread {
-                if (!isExporting) return@runOnUiThread
-        
-                progressText.text = msg
-        
-                if (finished) {
-                    isExporting = false
-                    activeTransformer = null
-                    exportBtn.text = "⬇ Export"
-                    exportBtn.background =
-                        roundedBg("#B71C1C", "#FF5252", 6)
-                    exportBtn.isEnabled = true
-                }
-            }
-        }
-        )
+            )
         } catch (e: Exception) {
             isExporting = false
             activeTransformer = null
             exportBtn.text = "⬇ Export"
             exportBtn.background = roundedBg("#B71C1C", "#FF5252", 6)
             exportBtn.isEnabled = true
-            Toast.makeText(this, "Export failed: ${e.message}", Toast.LENGTH_LONG).show()
+    
+            Toast.makeText(
+                this,
+                "Export failed: ${e.message}",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
