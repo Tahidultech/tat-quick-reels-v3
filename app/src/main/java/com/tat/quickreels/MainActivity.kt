@@ -22,8 +22,6 @@ import android.text.TextUtils
 import android.text.TextWatcher
 import android.text.style.ForegroundColorSpan
 import android.util.Size
-import android.util.Size
-import android.util.Size
 import android.view.*
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
