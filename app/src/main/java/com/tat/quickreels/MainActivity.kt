@@ -22,6 +22,8 @@ import android.text.TextUtils
 import android.text.TextWatcher
 import android.text.style.ForegroundColorSpan
 import android.util.Size
+import android.util.Size
+import android.util.Size
 import android.view.*
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
@@ -70,6 +72,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var recentVideosGrid: GridLayout
     private lateinit var overlayFilesGrid: GridLayout
+    private var overlayVideoView: PlayerView? = null
     private lateinit var folderNameLabel: TextView
 
     private lateinit var zoomSeek: SeekBar
@@ -143,7 +146,7 @@ class MainActivity : AppCompatActivity() {
     private var chromaKeyEnabled = false
     private var chromaKeyColor = Color.GREEN
     private var chromaKeyFeather = 0.12f
-    private var chromaKeyEdgeSoftness = 0.10f
+    private var chromaKeyEdgeSoftness = 0.12f
 
     private var downloaderPanel: com.tat.quickreels.downloader.DownloaderPanel? = null
 
@@ -350,7 +353,7 @@ class MainActivity : AppCompatActivity() {
         val leftPanel = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_HORIZONTAL
-            background = roundedBg("#16161A", "#2A2A32", 12)
+            background = roundedBg("#16161A", "#2A2A32", 2)
             setPadding(dp(2), dp(2), dp(2), dp(2))
         }
 
@@ -359,7 +362,7 @@ class MainActivity : AppCompatActivity() {
             setTextColor(Color.parseColor("#E0E0E0"))
             setTypeface(null, Typeface.BOLD)
             gravity = Gravity.CENTER
-            textSize = 11f
+            textSize = 12f
             visibility = View.GONE
         }
         leftPanel.addView(canvasTitleTop, LinearLayout.LayoutParams(-1, -2).apply {
@@ -487,7 +490,7 @@ class MainActivity : AppCompatActivity() {
             text = "▶"
             textSize = 12f
             setTextColor(Color.WHITE)
-            background = roundedBg("#25252D", "#3E3E4C", 6)
+            background = roundedBg("#25252D", "#3E3E4C", 2)
             setOnClickListener {
                 togglePlayPause()
             }
@@ -496,7 +499,7 @@ class MainActivity : AppCompatActivity() {
             text = "↺"
             textSize = 12f
             setTextColor(Color.WHITE)
-            background = roundedBg("#25252D", "#3E3E4C", 6)
+            background = roundedBg("#25252D", "#3E3E4C", 2)
             setOnClickListener {
                 resetVideoAndTextTransform()
             }
@@ -506,7 +509,7 @@ class MainActivity : AppCompatActivity() {
             textSize = 14f
             setTypeface(null, Typeface.BOLD)
             setTextColor(Color.WHITE)
-            background = roundedBg("#25252D", "#3E3E4C", 6)
+            background = roundedBg("#25252D", "#3E3E4C", 2)
             setOnClickListener {
                 adjustCanvasPreviewZoom(true)
             }
@@ -516,7 +519,7 @@ class MainActivity : AppCompatActivity() {
             textSize = 14f
             setTypeface(null, Typeface.BOLD)
             setTextColor(Color.WHITE)
-            background = roundedBg("#25252D", "#3E3E4C", 6)
+            background = roundedBg("#25252D", "#3E3E4C", 2)
             setOnClickListener {
                 adjustCanvasPreviewZoom(false)
             }
@@ -560,18 +563,18 @@ class MainActivity : AppCompatActivity() {
         }
         bPlayBtn = Button(this).apply {
             text = "▶"
-            textSize = 11f
+            textSize = 12f
             setTextColor(Color.WHITE)
-            background = roundedBg("#25252D", "#3E3E4C", 6)
+            background = roundedBg("#25252D", "#3E3E4C", 2)
             setOnClickListener {
                 togglePlayPause()
             }
         }
         bResetBtn = Button(this).apply {
             text = "↺"
-            textSize = 11f
+            textSize = 12f
             setTextColor(Color.WHITE)
-            background = roundedBg("#25252D", "#3E3E4C", 6)
+            background = roundedBg("#25252D", "#3E3E4C", 2)
             setOnClickListener {
                 resetVideoAndTextTransform()
             }
@@ -581,7 +584,7 @@ class MainActivity : AppCompatActivity() {
             textSize = 13f
             setTypeface(null, Typeface.BOLD)
             setTextColor(Color.WHITE)
-            background = roundedBg("#25252D", "#3E3E4C", 6)
+            background = roundedBg("#25252D", "#3E3E4C", 2)
             setOnClickListener {
                 adjustCanvasPreviewZoom(true)
             }
@@ -591,7 +594,7 @@ class MainActivity : AppCompatActivity() {
             textSize = 13f
             setTypeface(null, Typeface.BOLD)
             setTextColor(Color.WHITE)
-            background = roundedBg("#25252D", "#3E3E4C", 6)
+            background = roundedBg("#25252D", "#3E3E4C", 2)
             setOnClickListener {
                 adjustCanvasPreviewZoom(false)
             }
@@ -652,14 +655,14 @@ class MainActivity : AppCompatActivity() {
             }
             tButtons.add(b)
             val lp = LinearLayout.LayoutParams(0, dp(32), 1f).apply {
-                setMargins(dp(1), 0, dp(1), 0)
+                setMargins(dp(1), dp(1), dp(1), dp(1))
             }
             columnA.addView(b, lp)
         }
         tabButtons = tButtons
 
         columnBContainer = FrameLayout(this).apply {
-            setPadding(dp(1), 0, 0, 0)
+            setPadding(0, 0, 0, 0)
         }
 
         tableHeaderRow.addView(columnA, LinearLayout.LayoutParams(0, -2, 72f))
@@ -813,12 +816,12 @@ class MainActivity : AppCompatActivity() {
         player?.let {
             if (it.isPlaying) {
                 it.pause()
-                playPauseBtn.text = "▶"
+                playPauseBtn.text = "⏸"
                 bPlayBtn.text = "▶"
                 videoSeekOverlay.visibility = View.GONE
             } else {
                 it.play()
-                playPauseBtn.text = "⏸"
+                playPauseBtn.text = "▶"
                 bPlayBtn.text = "⏸"
                 videoSeekOverlay.visibility = View.VISIBLE
             }
@@ -954,18 +957,18 @@ class MainActivity : AppCompatActivity() {
         }
         val importBtn = Button(this).apply {
             text = "📁+"
-            textSize = 10f
+            textSize = 12f
             setTextColor(Color.WHITE)
-            background = roundedBg("#2E2E38", "#FF4D4D", 6)
+            background = roundedBg("#2E2E38", "#FF4D4D", 2)
             setOnClickListener {
                 videoPicker.launch("video/*")
             }
         }
         val refreshBtn = Button(this).apply {
             text = "🔄"
-            textSize = 10f
+            textSize = 12f
             setTextColor(Color.WHITE)
-            background = roundedBg("#25252D", null, 6)
+            background = roundedBg("#25252D", null, 2)
             setOnClickListener {
                 importedVideoUris.clear()
                 prefs.edit().remove("saved_imported_videos").apply()
@@ -976,7 +979,7 @@ class MainActivity : AppCompatActivity() {
             text = "⋮"
             textSize = 17f
             setTextColor(Color.WHITE)
-            background = roundedBg("#25252D", null, 6)
+            background = roundedBg("#25252D", null, 2)
             setOnClickListener {
                 val sizes = arrayOf("Small", "Medium", "Large")
                 val selected = sizes.indexOf(videoGridSize).coerceAtLeast(0)
@@ -1537,7 +1540,7 @@ class MainActivity : AppCompatActivity() {
         }
         val folderBtn = Button(this).apply {
             text = "📁"
-            textSize = 10f
+            textSize = 12f
             setTextColor(Color.WHITE)
             background = roundedBg("#2E2E38", "#FF4D4D", 6)
             setOnClickListener {
@@ -1546,7 +1549,7 @@ class MainActivity : AppCompatActivity() {
         }
         val singleOverlayBtn = Button(this).apply {
             text = "🖼"
-            textSize = 10f
+            textSize = 12f
             setTextColor(Color.WHITE)
             background = roundedBg("#25252D", null, 6)
             setOnClickListener {
@@ -1661,58 +1664,105 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+private fun removeOverlayPreviewForReplacement() {
+    // আগের video preview view সরান।
+    overlayVideoView?.let { oldView ->
+        oldView.player = null
+        canvas.removeView(oldView)
+    }
+    overlayVideoView = null
+
+    // আগের video player বন্ধ ও release করুন।
+    overlayPlayer?.release()
+    overlayPlayer = null
+
+    // ImageView-টি canvas-এ আছে নিশ্চিত করুন।
+    if (plateView.parent == null) {
+        val insertIndex = (canvas.indexOfChild(textBackgroundView))
+            .takeIf { it >= 0 }
+            ?: canvas.childCount
+
+        canvas.addView(
+            plateView,
+            insertIndex,
+            FrameLayout.LayoutParams(-1, -1)
+        )
+    }
+
+    plateView.setImageDrawable(null)
+    plateView.visibility = View.GONE
+}
+    
     private fun applyOverlayUri(uri: Uri, savePref: Boolean = true) {
         try {
+            // নতুন overlay নেওয়ার আগে আগের preview/player পরিষ্কার করুন।
+            removeOverlayPreviewForReplacement()
+    
             plateUri = uri
-
-            val mime =
-            contentResolver.getType(uri)?.lowercase()
-            ?: uri.lastPathSegment?.lowercase().orEmpty()
-
+    
+            val mime = contentResolver.getType(uri)?.lowercase().orEmpty()
+            val name = uri.lastPathSegment?.lowercase().orEmpty()
+    
+            val isVideo =
+                mime.startsWith("video/") ||
+                name.endsWith(".mp4") ||
+                name.endsWith(".mov") ||
+                name.endsWith(".webm") ||
+                name.endsWith(".mkv")
+    
             overlayMimeType = when {
-                mime.contains("video") -> "video"
-                mime.contains("gif") -> "gif"
-                mime.contains("png") -> "png"
+                isVideo -> "video"
+                mime.contains("gif") || name.endsWith(".gif") -> "gif"
+                mime.contains("png") || name.endsWith(".png") -> "png"
                 mime.contains("jpeg") ||
-                mime.contains("jpg") -> "jpg"
-                mime.contains("webp") -> "webp"
+                    mime.contains("jpg") ||
+                    name.endsWith(".jpg") ||
+                    name.endsWith(".jpeg") -> "jpg"
+                mime.contains("webp") || name.endsWith(".webp") -> "webp"
                 else -> "image"
             }
-
-            if (overlayMimeType == "video") {
-                overlayPlayer?.release()
-                overlayPlayer = ExoPlayer.Builder(this).build()
-                overlayPlayer?.repeatMode =
-                androidx.media3.common.Player.REPEAT_MODE_ONE
-                overlayPlayer?.setMediaItem(MediaItem.fromUri(uri))
-                overlayPlayer?.prepare()
-                overlayPlayer?.play()
-
-                val overlayView = androidx.media3.ui.PlayerView(this).apply {
-                    player = overlayPlayer
+    
+            if (isVideo) {
+                val newPlayer = ExoPlayer.Builder(this).build()
+                overlayPlayer = newPlayer
+    
+                newPlayer.repeatMode =
+                    androidx.media3.common.Player.REPEAT_MODE_ONE
+                newPlayer.setMediaItem(MediaItem.fromUri(uri))
+                newPlayer.prepare()
+                newPlayer.play()
+    
+                val newView = PlayerView(this).apply {
+                    player = newPlayer
                     useController = false
-                    resizeMode =
-                    AspectRatioFrameLayout.RESIZE_MODE_FIT
+                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
                 }
-
-                canvas.removeView(plateView)
+    
+                overlayVideoView = newView
                 plateView.visibility = View.GONE
-
-                val lp = FrameLayout.LayoutParams(-1, -1)
-
-                canvas.removeView(overlayView)
-                canvas.addView(overlayView, lp)
+    
+                // Video overlay-কে plateView-এর সামনে, কিন্তু text layer-এর পেছনে রাখুন।
+                val plateIndex = canvas.indexOfChild(plateView)
+                    .takeIf { it >= 0 }
+                    ?: 0
+    
+                canvas.addView(
+                    newView,
+                    (plateIndex + 1).coerceAtMost(canvas.childCount),
+                    FrameLayout.LayoutParams(-1, -1)
+                )
             } else {
+                // Image overlay-এর ক্ষেত্রে plateView-তেই নতুন ছবি বসবে।
                 plateView.setImageURI(uri)
                 plateView.visibility = View.VISIBLE
             }
-
+    
             if (savePref) {
                 prefs.edit()
-                .putString("last_overlay_uri", uri.toString())
-                .apply()
+                    .putString("last_overlay_uri", uri.toString())
+                    .apply()
             }
-
+    
             Toast.makeText(
                 this,
                 "Overlay selected",
